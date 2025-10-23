@@ -1,0 +1,55 @@
+// File: Main.java
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // For demo: small durations so you can test quickly
+        PomodoroTimer.PomodoroConfig cfg = new PomodoroTimer.PomodoroConfig(
+            10, // work seconds (use 1500 for 25 minutes)
+            5,  // short break seconds (use 300 for 5 minutes)
+            8,  // long break seconds (use 900 for 15 minutes)
+            4   // cycles before a long break
+        );
+
+        PomodoroTimer timer = new PomodoroTimer(cfg);
+        timer.setListener(new PomodoroTimer.TimerListener() {
+            @Override public void onTick(PomodoroTimer.Phase phase, int secondsLeft) {
+                System.out.printf("\r[%s] %02d:%02d  ", phase, secondsLeft / 60, secondsLeft % 60);
+                System.out.flush();
+            }
+            @Override public void onPhaseChange(PomodoroTimer.Phase newPhase) {
+                System.out.println("\n--- Phase changed -> " + newPhase + " ---");
+            }
+            @Override public void onStateChange(PomodoroTimer.State newState) {
+                System.out.println("\n*** State: " + newState + " ***");
+            }
+            @Override public void onCompleteCycle(int completedCycles) {
+                System.out.println("\n>>> Completed cycles: " + completedCycles + " <<<");
+            }
+        });
+
+        // Simple CLI control demo
+        System.out.println("Pomodoro demo: start -> wait 10s work -> auto switch. Commands: p=pause, r=resume, s=stop, n=next, q=quit");
+        timer.start();
+
+        // Simple input loop to control timer (non-blocking would be nicer, but this is demo)
+        java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
+        while (true) {
+            if (!br.ready()) {
+                Thread.sleep(200); // gentle wait
+                continue;
+            }
+            String line = br.readLine().trim().toLowerCase();
+            switch (line) {
+                case "p": timer.pause(); break;
+                case "r": timer.resume(); break;
+                case "s": timer.stop(); break;
+                case "n": timer.nextPhase(); break;
+                case "q":
+                    timer.shutdown();
+                    System.out.println("\nbye!");
+                    return;
+                default:
+                    System.out.println("unknown command");
+            }
+        }
+    }
+}
