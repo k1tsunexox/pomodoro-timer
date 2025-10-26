@@ -1,2 +1,2 @@
 # pomodoro-timer
-my pomodoro timer 𐔌՞. .՞𐦯 { as my first ever java project }
+this pomodoro timer will serve as the final project of our subject software design lecture in compuer engineering, we are tasked to create an app, a software or any output that applies all the fundamental concepts of java. our group has decided to create a simple pomodoro timer that uses the majority of fundamentals used in java, namely: inheritance, encapsulation, loops, arrays and many more.
