@@ -1,0 +1,42 @@
+// SmartPomodoro.java
+public class SmartPomodoro extends Pomodoro {
+    private int longBreak;
+    private int cycleBeforeLongBreak;
+
+    public SmartPomodoro(int totalCycles, int longBreak, int cycleBeforeLongBreak) {
+        super(totalCycles);
+        this.longBreak = longBreak;
+        this.cycleBeforeLongBreak = cycleBeforeLongBreak;
+    }
+
+    @Override
+    public void start() {
+        System.out.println("\n--- SMART POMODORO TIMER STARTED ---");
+        int cyclesCompleted = 0;
+
+        while (currentSession < sessions.length) {
+            TimerSession session = sessions[currentSession];
+            session.displaySession();
+            countdown(session.getDuration());
+            session.completeSession();
+            System.out.println("Session '" + session.getType() + "' complete.\n");
+
+            // After completing a break, check if a long break should occur
+            if (session.getType().equals("Break")) {
+                cyclesCompleted++;
+                if (cyclesCompleted % cycleBeforeLongBreak == 0) {
+                    longBreak();
+                }
+            }
+
+            currentSession++;
+        }
+        System.out.println("All smart sessions complete. Great job!");
+    }
+
+    private void longBreak() {
+        System.out.println("Starting long break for " + longBreak + " minute(s).");
+        countdown(longBreak);
+        System.out.println("Long break over. Returning to work sessions.");
+    }
+}
