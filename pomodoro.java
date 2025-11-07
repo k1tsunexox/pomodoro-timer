@@ -17,7 +17,7 @@ public class Pomodoro {
     }
 
     public void start() {
-        System.out.println("\n--- BASIC POMODORO TIMER STARTED ---");
+        System.out.println("\n--- POMODORO TIMER STARTED ---");
         while (currentSession < sessions.length) {
             TimerSession session = sessions[currentSession];
             session.displaySession();
