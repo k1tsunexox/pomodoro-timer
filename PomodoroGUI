@@ -1,0 +1,121 @@
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+
+public class PomodoroGUI extends JFrame {
+
+    private final PomodoroTimer timerLogic; // backend timer logic
+    private final JLabel timerLabel;        // displays time
+    private final JLabel statusLabel;
+    private final JComboBox<String> modeBox;
+    private final JButton startBtn, pauseBtn, resetBtn;
+    private final Timer swingTimer;         // updates GUI every second
+    private final Font pixelFont;           // pixelated font
+
+    @SuppressWarnings({"UseSpecificCatch", "CallToPrintStackTrace"})
+    public PomodoroGUI() {
+        // --- Frame setup ---
+        setTitle("[ • Pomodoro Timer • ]");
+        setSize(350, 250);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+
+        // --- Load pixel font ---
+        Font tempFont;
+        try {
+            tempFont = Font.createFont(Font.TRUETYPE_FONT, new File("bytebounce.medium.ttf"))
+                           .deriveFont(Font.PLAIN, 36); // size 36 for timer
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(tempFont);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // fallback to monospaced if font fails
+            tempFont = new Font("Monospaced", Font.BOLD, 36);
+        }
+        pixelFont = tempFont;
+
+        // -- status mode --
+        statusLabel = new JLabel("Short Focus — Stay productive!", SwingConstants.CENTER);
+        statusLabel.setFont(pixelFont.deriveFont(Font.PLAIN, 18));
+        statusLabel.setForeground(Color.BLACK); // 
+        add(statusLabel, BorderLayout.NORTH);
+        statusLabel.setOpaque(false);
+
+        // --- Timer logic ---
+        timerLogic = new PomodoroTimer("short focus");
+
+        // --- timer label ---
+        timerLabel = new JLabel(timerLogic.formatTime(), SwingConstants.CENTER);
+        timerLabel.setFont(pixelFont);
+        add(timerLabel, BorderLayout.CENTER);
+
+        // --- mode selector ---
+        modeBox = new JComboBox<>(new String[]{
+            "short focus", "long focus", "short break", "long break"
+        });
+        modeBox.setFont(pixelFont.deriveFont(Font.PLAIN, 20));
+        add(modeBox, BorderLayout.NORTH);
+
+        // --- buttons panel ---
+        JPanel buttonPanel = new JPanel();
+        startBtn = new JButton("Start");
+        pauseBtn = new JButton("Pause");
+        resetBtn = new JButton("Reset");
+
+        // Apply pixel font to buttons
+        startBtn.setFont(pixelFont.deriveFont(Font.PLAIN, 25));
+        pauseBtn.setFont(pixelFont.deriveFont(Font.PLAIN, 25));
+        resetBtn.setFont(pixelFont.deriveFont(Font.PLAIN, 25));
+
+        buttonPanel.add(startBtn);
+        buttonPanel.add(pauseBtn);
+        buttonPanel.add(resetBtn);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // --- button actions ---
+        startBtn.addActionListener(e -> timerLogic.start());
+        pauseBtn.addActionListener(e -> timerLogic.pause());
+        resetBtn.addActionListener(e -> {
+            timerLogic.reset();
+            timerLabel.setText(timerLogic.formatTime());
+        });
+        modeBox.addActionListener(e -> {
+            timerLogic.setMode((String) modeBox.getSelectedItem());
+            timerLabel.setText(timerLogic.formatTime());
+            updateStatusText(timerLogic.getMode());
+        });
+
+        // --- mode change ---
+        modeBox.addActionListener(e -> {
+            String selected = (String) modeBox.getSelectedItem();
+            timerLogic.setMode(selected);
+            timerLabel.setText(timerLogic.formatTime());
+            updateStatusText(selected);
+        });
+
+        // --- swing timer updates GUI every second ---
+        swingTimer = new Timer(1000, e -> {
+            timerLogic.tick();                   // countdown logic
+            timerLabel.setText(timerLogic.formatTime()); // refresh label
+        });
+        swingTimer.start();
+    }
+
+    // --- updates the text above the timer based on mode --- (di pa gumagana)
+    private void updateStatusText(String mode) {
+        switch (mode) {
+            case "short focus" ->
+                statusLabel.setText("Short Focus — Stay productive!");
+            case "long focus" ->
+                statusLabel.setText("Long Focus — Deep work mode!");
+            case "short break" ->
+                statusLabel.setText("Short Break — Relax for a bit!");
+            case "long break" ->
+                statusLabel.setText("Long Break — Take a long rest!");
+            default ->
+                statusLabel.setText("Pomodoro — Ready to start!");
+        }
+
+    }
+}
