@@ -1,0 +1,62 @@
+import java.sql.*;
+
+public class PomodoroDatabase {
+    private static final String DB_URL = "jdbc:sqlite:C:/Users/akini/Java Projects/Pomodoro Timer/POMDORO/src/pomodoro.db";
+
+    static {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            try {
+    Class.forName("org.sqlite.JDBC");
+} catch (ClassNotFoundException exception) {
+    e.printStackTrace();
+    System.exit(1);
+}
+
+        }
+    }
+
+    public static Connection connect() throws SQLException {
+        return DriverManager.getConnection(DB_URL);
+    }
+
+    public static void initialize() {
+        createTable();
+    }
+
+    public static void createTable() {
+        String sql = """
+            CREATE TABLE IF NOT EXISTS sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                duration INTEGER,
+                completed_at TEXT
+            );
+        """;
+
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+            System.out.println("Database connected & table ready!");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    public static void addSession(int duration, String timestamp) {
+        String sql = "INSERT INTO sessions(duration, completed_at) VALUES(?, ?)";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, duration);
+            pstmt.setString(2, timestamp);
+            pstmt.executeUpdate();
+            System.out.println("Session added: " + duration + " mins at " + timestamp);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
