@@ -1,0 +1,77 @@
+import javax.swing.*;
+import java.awt.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class PomodoroStatsWindow extends JDialog {
+    
+
+    public PomodoroStatsWindow(JFrame parent, PomodoroDatabase db, Font pixelFont) {
+        
+        
+        super(parent, "- Weekly Focus Stats -", true);
+        setSize(500, 400);
+        setLocationRelativeTo(parent);
+        setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(240, 248, 255));
+
+        // Header
+        JLabel header = new JLabel("- Your Weekly Focus -", SwingConstants.CENTER);
+        header.setFont(pixelFont.deriveFont(28f));
+        header.setForeground(new Color(70, 130, 180));
+        add(header, BorderLayout.NORTH);
+
+        // Stats panel
+        JPanel statsPanel = new JPanel();
+        statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
+        statsPanel.setBackground(new Color(240, 248, 255));
+
+        try {
+            ResultSet rs = db.getWeeklyStats();
+            boolean hasData = false;
+            while (rs.next()) {
+                hasData = true;
+                String date = rs.getString("date");
+                int minutes = rs.getInt("total_minutes");
+                JPanel dayCard = new JPanel();
+                dayCard.setBackground(new Color(173, 216, 230, 180));
+                dayCard.setBorder(BorderFactory.createLineBorder(new Color(70, 130, 180), 2));
+                dayCard.setMaximumSize(new Dimension(450, 50));
+                dayCard.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 5));
+                JLabel dayLabel = new JLabel(date + minutes + " min focused");
+                dayLabel.setFont(pixelFont.deriveFont(18f));
+                dayLabel.setForeground(new Color(70, 130, 180));
+                dayCard.add(dayLabel);
+                statsPanel.add(dayCard);
+                statsPanel.add(Box.createVerticalStrut(5));
+            }
+            if (!hasData) {
+                JLabel empty = new JLabel("No sessions recorded yet!", SwingConstants.CENTER);
+                empty.setFont(pixelFont.deriveFont(20f));
+                empty.setForeground(new Color(70, 130, 180));
+                statsPanel.add(empty);
+            }
+        } catch (SQLException e) {
+            JLabel error = new JLabel("Error loading stats!", SwingConstants.CENTER);
+            error.setFont(pixelFont.deriveFont(18f));
+            error.setForeground(Color.RED);
+            statsPanel.add(error);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(statsPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(10);
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Close button
+        JButton closeBtn = new JButton("Close");
+        closeBtn.setFont(pixelFont.deriveFont(16f));
+        closeBtn.setBackground(new Color(173, 216, 230));
+        closeBtn.setForeground(new Color(70, 130, 180));
+        closeBtn.addActionListener(e -> dispose());
+        JPanel btnPanel = new JPanel();
+        btnPanel.setBackground(new Color(240, 248, 255));
+        btnPanel.add(closeBtn);
+        add(btnPanel, BorderLayout.SOUTH);
+    }
+}
