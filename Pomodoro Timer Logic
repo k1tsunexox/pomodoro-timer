@@ -1,0 +1,72 @@
+public class PomodoroTimer {
+
+    public enum Mode {
+        FOCUS,
+        SHORT_BREAK
+    }
+
+    private Mode currentMode;
+    private int remainingSeconds;
+    private boolean running;
+
+    public PomodoroTimer() {
+        currentMode = Mode.FOCUS;
+        remainingSeconds = getModeDurationInSeconds(currentMode);
+        running = false;
+    }
+
+    public void start() {
+        running = true;
+    }
+
+    public void pause() {
+        running = false;
+    }
+
+    public void reset() {
+        running = false;
+        remainingSeconds = getModeDurationInSeconds(currentMode);
+    }
+
+    public void setCurrentMode(Mode mode) {
+        currentMode = mode;
+        reset();
+    }
+
+    public Mode getCurrentMode() {
+        return currentMode;
+    }
+
+    public boolean tickAndCheckFinished() {
+        if (!running) return false;
+        if (remainingSeconds > 0) {
+            remainingSeconds--;
+        }
+        return remainingSeconds == 0;
+    }
+
+    public void nextMode() {
+        if (currentMode == Mode.FOCUS) {
+            setCurrentMode(Mode.SHORT_BREAK);
+        } else {
+            setCurrentMode(Mode.FOCUS);
+        }
+    }
+
+    public String formatTime() {
+        int minutes = remainingSeconds / 60;
+        int seconds = remainingSeconds % 60;
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public int getModeDurationInSeconds(Mode mode) {
+        return switch (mode) {
+            case FOCUS -> 25 * 60;       // 25 minutes
+            case SHORT_BREAK -> 5 * 60;  // 5 minutes
+        };
+    }
+
+    public int getModeDurationInMinutes(Mode mode) {
+        return getModeDurationInSeconds(mode) / 60;
+    }
+}
