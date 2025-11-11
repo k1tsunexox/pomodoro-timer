@@ -1,13 +1,8 @@
-// === File: PomodoroMain.java ===
-// Launcher for the Pomodoro app
-
-import javax.swing.SwingUtilities;
-
+// PomodoroMain.java
 public class PomodoroMain {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            PomodoroGUI gui = new PomodoroGUI();
-            gui.setVisible(true);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            new PomodoroGUI().setVisible(true); // Launch your main GUI
         });
     }
 }
