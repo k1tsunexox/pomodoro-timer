@@ -1,4 +1,4 @@
-public class PomodoroTimer {
+public final class PomodoroTimer {
 
     public enum Mode {
         FOCUS,
