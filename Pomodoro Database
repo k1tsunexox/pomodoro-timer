@@ -1,62 +1,57 @@
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class PomodoroDatabase {
-    private static final String DB_URL = "jdbc:sqlite:C:/Users/akini/Java Projects/Pomodoro Timer/POMDORO/src/pomodoro.db";
 
-    static {
+    private Connection dbConnection;
+    private static final String DB_URL = "jdbc:sqlite:C:\\Users\\akini\\Java Projects\\pomodoro.db";
+
+    public PomodoroDatabase() {
+        initDatabase();
+    }
+
+    @SuppressWarnings("UseSpecificCatch")
+    private void initDatabase() {
         try {
-            Class.forName("org.sqlite.JDBC");
-        } catch (ClassNotFoundException e) {
+            Class.forName("org.sqlite.JDBC"); // load SQLite driver
+            dbConnection = DriverManager.getConnection(DB_URL);
+            try (Statement stmt = dbConnection.createStatement()) {
+                stmt.execute("CREATE TABLE IF NOT EXISTS sessions (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "date TEXT NOT NULL," +
+                        "mode TEXT NOT NULL," +
+                        "duration_minutes INTEGER NOT NULL," +
+                        "timestamp DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                        ")");
+            }
+        } catch (Exception e) {
             e.printStackTrace();
-            try {
-    Class.forName("org.sqlite.JDBC");
-} catch (ClassNotFoundException exception) {
-    e.printStackTrace();
-    System.exit(1);
-}
-
+            dbConnection = null;
         }
     }
 
-    public static Connection connect() throws SQLException {
-        return DriverManager.getConnection(DB_URL);
-    }
-
-    public static void initialize() {
-        createTable();
-    }
-
-    public static void createTable() {
-        String sql = """
-            CREATE TABLE IF NOT EXISTS sessions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                duration INTEGER,
-                completed_at TEXT
-            );
-        """;
-
-        try (Connection conn = connect();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-            System.out.println("Database connected & table ready!");
+    // record a finished Pomodoro session
+    public void recordSession(String mode, int durationMinutes) {
+        if (dbConnection == null) return;
+        try (PreparedStatement stmt = dbConnection.prepareStatement(
+                "INSERT INTO sessions (date, mode, duration_minutes) VALUES (?, ?, ?)"
+        )) {
+            stmt.setString(1, LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+            stmt.setString(2, mode);
+            stmt.setInt(3, durationMinutes);
+            stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-
-
-    public static void addSession(int duration, String timestamp) {
-        String sql = "INSERT INTO sessions(duration, completed_at) VALUES(?, ?)";
-
-        try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, duration);
-            pstmt.setString(2, timestamp);
-            pstmt.executeUpdate();
-            System.out.println("Session added: " + duration + " mins at " + timestamp);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    // fetch weekly stats grouped by date
+    public ResultSet getWeeklyStats() throws SQLException {
+        if (dbConnection == null) return null;
+        String sql = "SELECT date, SUM(duration_minutes) AS total_minutes FROM sessions " +
+                     "GROUP BY date ORDER BY date DESC LIMIT 7";
+        Statement stmt = dbConnection.createStatement();
+        return stmt.executeQuery(sql);
     }
 }
